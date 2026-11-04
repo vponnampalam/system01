@@ -6,7 +6,7 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-DEFAULT_URL = "http://127.0.0.1:5000/messages"
+DEFAULT_URL = "https://system01-287338587474.europe-west1.run.app/messages"
 
 
 def post_message(url: str, message: str) -> dict:
