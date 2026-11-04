@@ -2,13 +2,19 @@
 
 import argparse
 import json
-import sys
+import logging
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 DEFAULT_URL = "https://system01-287338587474.europe-west1.run.app/messages"
 DEFAULT_INTERVAL = 10
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def post_message(url: str, message: str) -> dict:
@@ -54,21 +60,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    print(f"Posting to {args.url} every {args.interval:g} seconds. Press Ctrl+C to stop.")
+    logger.info(
+        "Starting POST loop: url=%s interval=%g seconds",
+        args.url,
+        args.interval,
+    )
     try:
         while True:
+            logger.info("Posting message to %s", args.url)
             try:
                 result = post_message(args.url, args.message)
-                print(f"POST succeeded: {json.dumps(result)}", flush=True)
+                logger.info("POST succeeded: %s", json.dumps(result))
             except HTTPError as error:
                 detail = error.read().decode("utf-8", errors="replace")
-                print(f"HTTP {error.code}: {detail}", file=sys.stderr, flush=True)
+                logger.error("POST failed with HTTP %s: %s", error.code, detail)
             except (URLError, TimeoutError, ValueError) as error:
-                print(f"Request failed: {error}", file=sys.stderr, flush=True)
+                logger.error("POST request failed: %s", error)
 
             time.sleep(args.interval)
     except KeyboardInterrupt:
-        print("\nWorker stopped.")
+        logger.info("Worker stopped.")
 
     return 0
 
