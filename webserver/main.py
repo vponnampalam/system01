@@ -56,6 +56,8 @@ def post_message():
     if len(message) > MAX_MESSAGE_LENGTH:
         return jsonify(error=f"Message must be {MAX_MESSAGE_LENGTH} characters or fewer."), 400
 
+    app.logger.info("Received message: %s", message)
+
     try:
         pubsub_message_id = publish_message(message)
     except (GoogleAPICallError, GoogleAuthError, RuntimeError, TimeoutError):
