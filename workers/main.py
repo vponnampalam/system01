@@ -3,18 +3,27 @@
 import argparse
 import json
 import logging
+import random
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 DEFAULT_URL = "https://system01-287338587474.europe-west1.run.app/messages"
 DEFAULT_INTERVAL = 10
+TEMP_MIN = 67
+TEMP_MAX = 98
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+def create_message() -> str:
+    """Create the message to send."""
+    temp_val = random.uniform(TEMP_MIN, TEMP_MAX)
+    return json.dumps({"temp": temp_val})
 
 
 def post_message(url: str, message: str) -> dict:
@@ -44,9 +53,8 @@ def positive_seconds(value: str) -> float:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="POST a message repeatedly, waiting between requests."
+        description="Create and POST a message repeatedly, waiting between requests."
     )
-    parser.add_argument("message", help="Text of the message to send each time")
     parser.add_argument(
         "--url",
         default=DEFAULT_URL,
@@ -69,7 +77,7 @@ def main() -> int:
         while True:
             logger.info("Posting message to %s", args.url)
             try:
-                result = post_message(args.url, args.message)
+                result = post_message(args.url, create_message())
                 logger.info("POST succeeded: %s", json.dumps(result))
             except HTTPError as error:
                 detail = error.read().decode("utf-8", errors="replace")
